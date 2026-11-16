@@ -1,9 +1,13 @@
 [package]
 name = "ihs"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
-description = "ihs - images hold secrets. A micro CLI tool that lets users hide and reveal data in PNG files, while remaining identical to the eye."
+description = "ihs - images hide secrets. A micro CLI tool that lets users hide and reveal data in PNG files, while remaining identical to the eye."
 license = "MIT"
+repository = "https://github.com/artemtsitronov/ihs"
+readme = "README.md"
+keywords = ["steganography", "png", "cli", "image", "secrets"]
+categories = ["command-line-utilities", "multimedia::images"]
 
 [dependencies]
 clap = { version = "4.6.7", features = ["derive"] }
