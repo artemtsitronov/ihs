@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "eed", about = "eed encrypts data: encrypt text inside images")]
+#[command(name = "ihs", about = "ihs: images hide secrets")]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -9,24 +9,24 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    Encrypt {
+    Hide {
         input: String,
         text: String,
 
-        #[arg(short, long, default_value = "eed_out.png")]
+        #[arg(short, long, default_value = "ihs_out.png")]
         output: String,
     },
-    Decrypt {
+    Reveal {
         input: String,
     },
 }
 
 // -- //
 
-const START: &[u8] = b"EED<";
-const END: &[u8] = b">EED";
+const START: &[u8] = b"IHS<";
+const END: &[u8] = b">IHS";
 
-fn encrypt(image: &mut [u8], data: &str) -> Result<(), String> {
+fn hide(image: &mut [u8], data: &str) -> Result<(), String> {
     let packed = [START, data.as_bytes(), END].concat();
     if packed.len() * 8 > image.len() {
         return Err(format!(
@@ -46,7 +46,7 @@ fn encrypt(image: &mut [u8], data: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn decrypt(img: &[u8]) -> Option<String> {
+fn reveal(img: &[u8]) -> Option<String> {
     let read_byte = |img: &[u8], i: usize| {
         let mut got: u8 = 0;
         for bit in 0..8 {
@@ -79,29 +79,35 @@ fn decrypt(img: &[u8]) -> Option<String> {
 }
 
 fn main() {
-    println!("EED - Eed Encrypts Data. Made in Rust by Artem Tsitronov.");
+    println!("ihs - Images Hide Secrets. Made in Rust by Artem Tsitronov.");
 
     let cli = Cli::parse();
     match cli.command {
-        Command::Encrypt {
+        Command::Hide {
             input,
             text,
             output,
         } => {
-            let mut image = image::open(input).expect("No image found").to_rgba8();
-            if let Err(e) = encrypt(&mut image, &text) {
+            if !output.to_lowercase().ends_with(".png") {
+                eprintln!("Error - output MUST BE A .PNG FILE. I don't accept JPG, NO!");
+                std::process::exit(1);
+            }
+            let mut image = image::open(input).expect("No image found").to_rgb8();
+            if let Err(e) = hide(&mut image, &text) {
                 eprintln!("Error - {}", e);
                 std::process::exit(1);
             }
 
-            image.save(&output).ok();
-            println!("Ecryption was succesful. Saved to {}", output);
+            image
+                .save(&output)
+                .expect("Couldn't save an image! Oh my god! It's DEAD!!!");
+            println!("Hiding was successful. Saved to {}", output);
         }
-        Command::Decrypt { input } => {
-            let image = image::open(input).expect("No image found").to_rgba8();
-            match decrypt(&image) {
-                Some(decrypted) => println!("{}", decrypted),
-                None => println!("No EED data found"),
+        Command::Reveal { input } => {
+            let image = image::open(input).expect("No image found").to_rgb8();
+            match reveal(&image) {
+                Some(revealed) => println!("{}", revealed),
+                None => println!("No ihs data found - it got lost."),
             }
         }
     }
